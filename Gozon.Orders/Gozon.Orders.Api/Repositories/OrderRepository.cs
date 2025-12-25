@@ -19,6 +19,11 @@ public class OrderRepository : IOrderRepository
         return await _dbContext.Orders.FindAsync(id);
     }
 
+    public async Task<List<Order>> GetAllAsync()
+    {
+        return await _dbContext.Orders.AsNoTracking().ToListAsync();
+    }
+
     public async Task AddAsync(Order order)
     {
         await _dbContext.Orders.AddAsync(order);

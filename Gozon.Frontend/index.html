@@ -46,6 +46,19 @@
         <pre id="orderResult">...</pre>
     </div>
 
+    <div class="card">
+        <h2>5. List Orders (Orders Service)</h2>
+        <button onclick="getOrders()">Get All Orders</button>
+        <pre id="ordersListResult">...</pre>
+    </div>
+
+    <div class="card">
+        <h2>6. Check Order Status (Orders Service)</h2>
+        <input type="text" id="statusOrderId" placeholder="Order ID (Guid)">
+        <button onclick="checkOrderStatus()">Check Status</button>
+        <pre id="orderStatusResult">...</pre>
+    </div>
+
     <script>
         function generateGuid() {
             const guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -146,11 +159,48 @@
                 const data = await response.json();
                 resultPre.innerText = "Order Created!\n" + JSON.stringify(data, null, 2) + "\n\nCheck balance again in a few seconds to see the deduction.";
 
+                if (data.orderId) {
+                    document.getElementById('statusOrderId').value = data.orderId;
+                }
+
                 setTimeout(() => {
                     document.getElementById('checkUserId').value = userId;
                     checkBalance();
                 }, 2000);
 
+            } catch (error) {
+                resultPre.innerText = error.message;
+            }
+        }
+
+        async function getOrders() {
+            const resultPre = document.getElementById('ordersListResult');
+            resultPre.innerText = "Loading...";
+
+            try {
+                const response = await fetch('http://localhost:8080/api/orders');
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+                const data = await response.json();
+                resultPre.innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultPre.innerText = error.message;
+            }
+        }
+
+        async function checkOrderStatus() {
+            const orderId = document.getElementById('statusOrderId').value;
+            const resultPre = document.getElementById('orderStatusResult');
+            resultPre.innerText = "Checking...";
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/orders/${orderId}/status`);
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+                const data = await response.json();
+                resultPre.innerText = JSON.stringify(data, null, 2);
             } catch (error) {
                 resultPre.innerText = error.message;
             }

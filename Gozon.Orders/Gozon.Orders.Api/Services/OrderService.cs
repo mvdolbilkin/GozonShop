@@ -37,6 +37,16 @@ public class OrderService : IOrderService
         return order;
     }
 
+    public async Task<IEnumerable<Order>> GetOrdersAsync()
+    {
+        return await _orderRepository.GetAllAsync();
+    }
+
+    public async Task<Order?> GetOrderAsync(Guid orderId)
+    {
+        return await _orderRepository.GetByIdAsync(orderId);
+    }
+
     public async Task MarkAsPaidAsync(Guid orderId)
     {
         var order = await _orderRepository.GetByIdAsync(orderId);
