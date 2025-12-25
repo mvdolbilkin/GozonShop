@@ -1,0 +1,27 @@
+@Gozon.Orders.Api_HostAddress = http://localhost:8081
+
+POST {{Gozon.Orders.Api_HostAddress}}/api/Orders
+Content-Type: application/json
+
+{
+  "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "amount": 100.00
+}
+
+POST {{Gozon.Orders.Api_HostAddress}}/api/Orders
+Content-Type: application/json
+
+{
+  "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "amount": 50000.00
+}
+
+GET {{Gozon.Orders.Api_HostAddress}}/api/Orders/{id}
+Accept: application/json
+
+GET {{Gozon.Orders.Api_HostAddress}}/api/Orders
+Accept: application/json
+
+GET {{Gozon.Orders.Api_HostAddress}}/api/Orders/user/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Accept: application/json
+

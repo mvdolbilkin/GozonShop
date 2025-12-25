@@ -1,0 +1,90 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: gozon-rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  orders-db:
+    image: postgres:15
+    container_name: gozon-orders-db
+    environment:
+      POSTGRES_DB: orders_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+
+  orders-service:
+    build:
+      context: .
+      dockerfile: Gozon.Orders/Gozon.Orders.Api/Dockerfile
+    container_name: gozon-orders-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=orders-db;Database=orders_db;Username=postgres;Password=password
+      - RabbitMq__Host=rabbitmq
+    ports:
+      - "8081:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      orders-db:
+        condition: service_started
+
+  payments-db:
+    image: postgres:15
+    container_name: gozon-payments-db
+    environment:
+      POSTGRES_DB: payments_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+
+  payments-service:
+    build:
+      context: .
+      dockerfile: Gozon.Payments/Gozon.Payments.Api/Dockerfile
+    container_name: gozon-payments-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=payments-db;Database=payments_db;Username=postgres;Password=password
+      - RabbitMq__Host=rabbitmq
+    ports:
+      - "8082:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      payments-db:
+        condition: service_started
+
+  gateway-service:
+    build:
+      context: Gozon.Gateway
+      dockerfile: Gozon.Gateway/Dockerfile
+    container_name: gozon-gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "8080:8080"
+    depends_on:
+      orders-service:
+        condition: service_started
+      payments-service:
+        condition: service_started
+
+  frontend:
+    build:
+      context: Gozon.Frontend
+      dockerfile: Dockerfile
+    container_name: gozon-frontend
+    ports:
+      - "3000:80"
+

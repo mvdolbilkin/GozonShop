@@ -1,0 +1,6 @@
+@Gozon.Gateway_HostAddress = http://localhost:5122
+
+GET {{Gozon.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gozon Shop</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        h2 { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <h1>Gozon Shop Frontend</h1>
+    
+    <div class="card">
+        <h2>1. Create Account (Payments Service)</h2>
+        <input type="text" id="createAccountUserId" placeholder="New User ID (Guid)" value="">
+        <button onclick="generateGuid()">Generate GUID</button>
+        <button onclick="createAccount()">Create Account</button>
+        <pre id="createAccountResult">...</pre>
+    </div>
+
+    <div class="card">
+        <h2>2. Top Up Balance (Payments Service)</h2>
+        <input type="text" id="topUpUserId" placeholder="User ID (Guid)" value="3fa85f64-5717-4562-b3fc-2c963f66afa6">
+        <input type="number" id="topUpAmount" placeholder="Amount" value="1000">
+        <button onclick="topUp()">Top Up</button>
+        <pre id="topUpResult">...</pre>
+    </div>
+
+    <div class="card">
+        <h2>3. Check Balance (Payments Service)</h2>
+        <input type="text" id="checkUserId" placeholder="User ID (Guid)" value="3fa85f64-5717-4562-b3fc-2c963f66afa6">
+        <button onclick="checkBalance()">Check Balance</button>
+        <pre id="balanceResult">...</pre>
+    </div>
+
+    <div class="card">
+        <h2>4. Create Order (Orders Service)</h2>
+        <input type="text" id="orderUserId" placeholder="User ID (Guid)" value="3fa85f64-5717-4562-b3fc-2c963f66afa6">
+        <input type="number" id="amount" placeholder="Amount" value="100">
+        <button onclick="createOrder()">Buy Item</button>
+        <pre id="orderResult">...</pre>
+    </div>
+
+    <script>
+        function generateGuid() {
+            const guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            document.getElementById('createAccountUserId').value = guid;
+        }
+
+        async function createAccount() {
+            const userId = document.getElementById('createAccountUserId').value;
+            const resultPre = document.getElementById('createAccountResult');
+            resultPre.innerText = "Creating...";
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/accounts?userId=${userId}`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`Error: ${response.status} ${response.statusText} - ${text}`);
+                }
+                const data = await response.json();
+                resultPre.innerText = JSON.stringify(data, null, 2);
+
+                document.getElementById('topUpUserId').value = userId;
+                document.getElementById('checkUserId').value = userId;
+                document.getElementById('orderUserId').value = userId;
+
+            } catch (error) {
+                resultPre.innerText = error.message;
+            }
+        }
+
+        async function topUp() {
+            const userId = document.getElementById('topUpUserId').value;
+            const amount = document.getElementById('topUpAmount').value;
+            const resultPre = document.getElementById('topUpResult');
+            resultPre.innerText = "Processing...";
+
+            try {
+                const response = await fetch('http://localhost:8080/api/accounts/topup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: userId, amount: parseFloat(amount) })
+                });
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`Error: ${response.status} ${response.statusText} - ${text}`);
+                }
+                const data = await response.json();
+                resultPre.innerText = "Top Up Successful!\n" + JSON.stringify(data, null, 2);
+
+                document.getElementById('checkUserId').value = userId;
+                checkBalance();
+
+            } catch (error) {
+                resultPre.innerText = error.message;
+            }
+        }
+
+        async function checkBalance() {
+            const userId = document.getElementById('checkUserId').value;
+            const resultPre = document.getElementById('balanceResult');
+            resultPre.innerText = "Loading...";
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/accounts/${userId}`);
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+                const data = await response.json();
+                resultPre.innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultPre.innerText = error.message;
+            }
+        }
+
+        async function createOrder() {
+            const userId = document.getElementById('orderUserId').value;
+            const amount = document.getElementById('amount').value;
+            const resultPre = document.getElementById('orderResult');
+            resultPre.innerText = "Processing...";
+
+            try {
+                const response = await fetch('http://localhost:8080/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: userId, amount: parseFloat(amount) })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                resultPre.innerText = "Order Created!\n" + JSON.stringify(data, null, 2) + "\n\nCheck balance again in a few seconds to see the deduction.";
+
+                setTimeout(() => {
+                    document.getElementById('checkUserId').value = userId;
+                    checkBalance();
+                }, 2000);
+
+            } catch (error) {
+                resultPre.innerText = error.message;
+            }
+        }
+    </script>
+</body>
+</html>

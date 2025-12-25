@@ -1,0 +1,47 @@
+@Gozon.Payments.Api_HostAddress = http://localhost:8082
+
+POST {{Gozon.Payments.Api_HostAddress}}/api/Accounts
+Content-Type: application/json
+
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440000"
+}
+
+POST {{Gozon.Payments.Api_HostAddress}}/api/Accounts/topup
+Content-Type: application/json
+
+{
+  "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "amount": 5000.00
+}
+
+GET {{Gozon.Payments.Api_HostAddress}}/api/Accounts/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Accept: application/json
+
+GET {{Gozon.Payments.Api_HostAddress}}/api/Accounts/550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+
+POST {{Gozon.Payments.Api_HostAddress}}/api/Accounts
+Content-Type: application/json
+
+{
+  "userId": "12345678-1234-1234-1234-123456789abc"
+}
+
+POST {{Gozon.Payments.Api_HostAddress}}/api/Accounts/topup
+Content-Type: application/json
+
+{
+  "userId": "12345678-1234-1234-1234-123456789abc",
+  "amount": 1000.00
+}
+
+
+POST http://localhost:8081/api/Orders
+Content-Type: application/json
+
+{
+  "userId": "12345678-1234-1234-1234-123456789abc",
+  "amount": 250.00
+}
+
